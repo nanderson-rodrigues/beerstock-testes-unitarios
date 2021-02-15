@@ -3,6 +3,7 @@ package com.digitalinnovation.one.beerstock.controller;
 import com.digitalinnovation.one.beerstock.builder.BeerDTOBuilder;
 import com.digitalinnovation.one.beerstock.dto.BeerDTO;
 import com.digitalinnovation.one.beerstock.exception.BeerAlreadyRegisteredException;
+import com.digitalinnovation.one.beerstock.exception.BeerNotFoundException;
 import com.digitalinnovation.one.beerstock.service.BeerService;
 import com.digitalinnovation.one.beerstock.utils.JsonConvertionUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MockMvcBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
@@ -21,6 +23,7 @@ import java.awt.*;
 import static com.digitalinnovation.one.beerstock.utils.JsonConvertionUtils.*;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -73,5 +76,20 @@ public class BeerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(beerDTO)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenGETIsCalledWithValidNameThenOKStatusIsReturned() throws Exception {
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        when(beerService.findByName(beerDTO.getName())).thenReturn(beerDTO);
+
+        mockMvc.perform(
+                get(BEER_API_URL_PATH + "/" + beerDTO.getName())
+                        .contentType(MediaType.APPLICATION_JSON) )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(beerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(beerDTO.getType().toString())));
     }
 }
