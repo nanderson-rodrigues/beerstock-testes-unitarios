@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.*;
@@ -63,5 +65,18 @@ public class BeerServiceTest {
         when(beerRepository.findByName(beerDTO.getName())).thenReturn(Optional.of(duplicatedBeer));
 
         assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(beerDTO));
+    }
+
+    @Test
+    void whenListBeerIsCalledThenReturnAListOfBeers() {
+        BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
+
+        when(beerRepository.findAll()).thenReturn(Collections.singletonList(expectedFoundBeer));
+
+        List<BeerDTO> foundBeerDTO = beerService.listAll();
+
+        assertThat(foundBeerDTO, is(not(empty())));
+        assertThat(foundBeerDTO.get(0), is(equalTo(expectedFoundBeerDTO)));
     }
 }
