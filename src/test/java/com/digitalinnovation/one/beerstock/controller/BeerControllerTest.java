@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import java.awt.*;
+import java.util.Collections;
 
 import static com.digitalinnovation.one.beerstock.utils.JsonConvertionUtils.*;
 import static org.hamcrest.Matchers.is;
@@ -103,5 +104,20 @@ public class BeerControllerTest {
                 get(BEER_API_URL_PATH + "/" + beerDTO.getName())
                         .contentType(MediaType.APPLICATION_JSON) )
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void whenGETListWithoutBeersIsCalledThenOKStatusIsReturned() throws Exception {
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        when(beerService.listAll()).thenReturn(Collections.singletonList(beerDTO));
+
+        mockMvc.perform(
+                get(BEER_API_URL_PATH)
+                        .contentType(MediaType.APPLICATION_JSON) )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name", is(beerDTO.getName())))
+                .andExpect(jsonPath("$[0].brand", is(beerDTO.getBrand())))
+                .andExpect(jsonPath("$[0].type", is(beerDTO.getType().toString())));
     }
 }

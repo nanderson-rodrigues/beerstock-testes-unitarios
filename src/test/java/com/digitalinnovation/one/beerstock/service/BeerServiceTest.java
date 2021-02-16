@@ -4,6 +4,7 @@ import com.digitalinnovation.one.beerstock.builder.BeerDTOBuilder;
 import com.digitalinnovation.one.beerstock.dto.BeerDTO;
 import com.digitalinnovation.one.beerstock.entity.Beer;
 import com.digitalinnovation.one.beerstock.exception.BeerAlreadyRegisteredException;
+import com.digitalinnovation.one.beerstock.exception.BeerNotFoundException;
 import com.digitalinnovation.one.beerstock.mapper.BeerMapper;
 import com.digitalinnovation.one.beerstock.repository.BeerRepository;
 import org.hamcrest.MatcherAssert;
@@ -87,5 +88,20 @@ public class BeerServiceTest {
         List<BeerDTO> foundBeerDTO = beerService.listAll();
 
         assertThat(foundBeerDTO, is(empty()));
+    }
+
+    @Test
+    void whenExclusionIsCalledWithValidIdThenABeerShouldBeDeleted() throws BeerNotFoundException {
+        BeerDTO expectedDeletedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        Beer expectedDeletedBeer = beerMapper.toModel(expectedDeletedBeerDTO);
+
+        when(beerRepository.findById(expectedDeletedBeerDTO.getId())).thenReturn(Optional.of(expectedDeletedBeer));
+
+        doNothing().when(beerRepository).deleteById(expectedDeletedBeerDTO.getId());
+
+        beerService.deleteById(expectedDeletedBeerDTO.getId());
+
+        verify(beerRepository, times(1)).findById(expectedDeletedBeerDTO.getId());
+        verify(beerRepository, times(1)).deleteById(expectedDeletedBeerDTO.getId());
     }
 }
